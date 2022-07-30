@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="icon" href="data:;base64,=" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+      crossorigin="anonymous"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Newsreader&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../resources/css/style.css" />
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="../resources/js/d3-annotation.min.js"></script>
+  </head>
+  <body>
+    <main>
+      <div class="container py-4">
+        <header class="pb-3 mb-4 border-bottom" id="message"></header>
+        <div class="p-5 mb-4 bg-light border rounded-3">
+          <div class="row">
+            <div class="col-sm-12" id="chart_header"></div>
+          </div>
+          <div class="row">
+            <div class="col-sm-4" id="page_nav"></div>
+            <div class="col-sm-4 text-center" id="det_btn"></div>
+            <div class="col-sm-4"><div id="ddlContainer"></div></div>
+          </div>
+          <div class="row">
+            <div class="row">
+              <svg id="svgContainer" style="height: 452px; width: 1000px"></svg>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm-10" id="chart_footer"></div>
+            <div class="col-sm-2">
+              <div class="row">
+                <div class="col-sm-3"></div>
+                <div class="col-sm-3" id="btn_prev"></div>
+                <div class="col-sm-3" id="btn"></div>
+                <div class="col-sm-3"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Modal -->
+        <div
+          class="modal fade"
+          id="exampleModal"
+          tabindex="-1"
+          role="dialog"
+          aria-labelledby="exampleModalLabel"
+          aria-hidden="true"
+        >
+          <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel"></h5>
+                <button
+                  type="button"
+                  class="close"
+                  data-dismiss="modal"
+                  aria-label="Close"
+                >
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <div class="row">
+                  <div class="col-sm-8"></div>
+                  <div class="col-sm-4" id="detail_month"></div>
+                </div>
+                <div class="row">
+                  <div class="col-sm-12">
+                    <svg id="daily_details" height="400" width="1000"></svg>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  data-dismiss="modal"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <footer class="pt-3 mt-4 text-muted border-top">© 2021</footer>
+      </div>
+    </main>
+  </body>
+  <!-- JavaScript Bundle with Popper -->
+  <script
+    src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+    integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+    crossorigin="anonymous"
+  ></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+    integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+    crossorigin="anonymous"
+  ></script>
+  <script
+    src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"
+  ></script>
+  <script src="../resources/js/common.js"></script>
+  <script type="text/javascript"></script>
+  <script type="text/javascript">
+    var index = "";
+    var date_rng = { start: "2020-11-01", end: "2020-11-30" };
+  </script>
+  <script>
+    //Populate Chart
+    chart = (data) => {
+      //console.log(data);
+      var svg = d3.select("#svgContainer").attr("viewBox", [0, 0, 1000, 500]);
+
+      var width = +svg.style("width").replace("px", "");
+      var height = +svg.style("height").replace("px", "");
+      svg.selectAll("*").remove();
+      //console.log(width);
+      //console.log(height);
+
+      var margin = { top: 60, right: 60, bottom: 60, left: 100 };
+      //console.log(margin);
+
+      var dates = [new Date("2020-11-30"), new Date("2021-07-31")];
+
+      var domain = d3.extent(dates);
+      var xScale = d3.scaleTime().domain(domain).range([000, 800]);
+      var xAxis = d3
+        .axisBottom(xScale)
+        .tickValues([
+          parseTime("2020-12-31"),
+          parseTime("2021-01-31"),
+          parseTime("2021-02-28"),
+          parseTime("2021-03-31"),
+          parseTime("2021-04-30"),
+          parseTime("2021-05-31"),
+          parseTime("2021-06-30"),
+          parseTime("2021-07-31"),
+        ])
+        .tickFormat(d3.timeFormat("%b %d"));
+      let yScale = d3.scaleSymlog().domain([500000, 0]).range([0, 300]);
+      var yAxis = d3
+        .axisLeft(yScale)
+        .tickValues([0, 100, 1000, 10000, 100000, 500000]);
+
+      var y = svg
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + 100 + ")")
+        .call(yAxis);
+
+      var x = svg
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + 400 + ")")
+        .call(xAxis);
+
+      var g = svg
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + 100 + ")");
+
+      //Charts
+      g.append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", "rgb(70, 130, 180)")
+        .attr("stroke-width", 2)
+        .attr(
+          "d",
+          d3
+            .line()
+            .x(function (d) {
+              return xScale(d.DATE);
+            })
+            .y(function (d) {
+              return yScale(d.CASE_CNT);
+            })
+        );
+
+      g.append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", "rgba(198, 45, 205, 0.8)")
+        .attr("stroke-width", 2)
+        .attr(
+          "d",
+          d3
+            .line()
+            .x(function (d) {
+              return xScale(d.DATE);
+            })
+            .y(function (d) {
+              return yScale(d.DEATH_CNT);
+            })
+        );
+
+      g.append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", "rgb(105, 179, 162)")
+        .attr("stroke-width", 2)
+        .attr(
+          "d",
+          d3
+            .line()
+            .x(function (d) {
+              return xScale(d.DATE);
+            })
+            .y(function (d) {
+              return yScale(d.VAC_CNT);
+            })
+        );
+
+      svg
+        .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 15)
+        .attr("x", 0 - 260)
+        .attr("dy", "1em")
+        .style("text-anchor", "middle")
+        .text("Count");
+
+      // Mouseover
+      var focus = svg
+        .append("g")
+        .attr("class", "bs-light")
+        .style("display", "none");
+
+      focus
+        .append("rect")
+        .attr("x", 15)
+        .attr("y", 180)
+        .attr("width", 190)
+        .attr("height", 90)
+        .attr("stroke", "#606060")
+        .attr("fill", "white");
+
+      focus
+        .append("line")
+        .attr("x0", 0)
+        .attr("x1", 0)
+        .attr("y0", 0)
+        .attr("y1", 340)
+        .style("stroke-width", 2)
+        .style("stroke", "red")
+        .style("fill", "none");
+
+      focus
+        .append("text")
+        .attr("class", "tooltip-date")
+        .attr("x", 18)
+        .attr("y", 200)
+        .style("font-size", "12px");
+
+      focus
+        .append("text")
+        .attr("class", "tooltip-case")
+        .attr("x", 18)
+        .attr("y", 220)
+        .style("font-size", "12px");
+      focus
+        .append("text")
+        .attr("class", "tooltip-death")
+        .attr("x", 18)
+        .attr("y", 240)
+        .style("font-size", "12px");
+      focus
+        .append("text")
+        .attr("class", "tooltip-vac")
+        .attr("x", 18)
+        .attr("y", 260)
+        .style("font-size", "12px");
+
+      var bisectDate = d3.bisector(function (d) {
+        return d.DATE;
+      }).left;
+
+      svg
+        .append("rect")
+        .attr("class", "overlay")
+        .attr("width", width)
+        .attr("height", height)
+        .on("mouseover", function () {
+          focus.style("display", null);
+        })
+        .on("mouseout", function () {
+          focus.style("display", "none");
+        })
+        .on("mousemove", function () {
+          var coord = d3.mouse(this);
+          x_val = xScale.invert(coord[0]);
+          i = bisectDate(data, x_val, 1);
+          //console.log(i);
+          (d0 = data[i - 1 < 0 ? 0 : i - 1]),
+            (d1 = data[i > 7 ? 7 : i]),
+            (d = x_val - d0.END_DATE > d1.END_DATE - x_val ? d1 : d0);
+          focus.attr(
+            "transform",
+            "translate(" +
+              (xScale(d.DATE) + margin.left) +
+              "," +
+              margin.top +
+              ")"
+          );
+          focus.select(".tooltip-date").text(d.MONTH);
+          focus
+            .select(".tooltip-case")
+            .text("Cases: " + d.CASE_CNT_K + " (" + d.CASE_PCT_CHG + "% chg.)");
+          focus
+            .select(".tooltip-death")
+            .text(
+              "Deaths: " + d.DEATH_CNT_K + " (" + d.DEATH_PCT_CHG + "% chg.)"
+            );
+          focus
+            .select(".tooltip-vac")
+            .text(
+              "Vaccinations: " + d.VAC_CNT_K + " (" + d.VAC_PCT_CHG + "% chg.)"
+            );
+        });
+
+      // Legends
+      svg
+        .append("rect")
+        .attr("x", 200)
+        .attr("y", 450)
+        .attr("height", 12)
+        .attr("width", 12)
+        .style("fill", "rgb(70, 130, 180)");
+      svg
+        .append("rect")
+        .attr("x", 300)
+        .attr("y", 450)
+        .attr("height", 12)
+        .attr("width", 12)
+        .style("fill", "rgba(198, 45, 205, 0.8)");
+      svg
+        .append("rect")
+        .attr("x", 400)
+        .attr("y", 450)
+        .attr("height", 12)
+        .attr("width", 12)
+        .style("fill", "rgb(105, 179, 162)");
+      svg
+        .append("text")
+        .attr("x", 220)
+        .attr("y", 462)
+        .text("Cases")
+        .style("font-size", "15px")
+        .attr("alignment-baseline", "middle");
+      svg
+        .append("text")
+        .attr("x", 320)
+        .attr("y", 462)
+        .text("Deaths")
+        .style("font-size", "15px")
+        .attr("alignment-baseline", "middle");
+      svg
+        .append("text")
+        .attr("x", 420)
+        .attr("y", 462)
+        .text("Vaccinations (atleast 1 dose)")
+        .style("font-size", "15px")
+        .attr("alignment-baseline", "middle");
+    };
+  </script>
+  <script>
+    //Populate Chart
+    chart2 = (data, start_dt, end_dt) => {
+      console.log(data);
+      var svg = d3.select("#daily_details").attr("viewBox", [0, 0, 1100, 300]);
+
+      var width = +svg.style("width").replace("px", "");
+      var height = +svg.style("height").replace("px", "");
+      svg.selectAll("*").remove();
+      //console.log(width);
+      //console.log(height);
+
+      var margin = { top: 10, right: 60, bottom: 60, left: 100 };
+      //console.log(margin);
+      d = new Date(end_dt);
+      var dates = [new Date(start_dt), new Date(end_dt)];
+
+      var domain = d3.extent(dates);
+      var xScale = d3.scaleTime().domain(domain).range([000, 500]);
+      var xAxis = d3.axisBottom(xScale);
+
+      let yScale = d3.scaleSymlog().domain([500000, 0]).range([0, 300]);
+      var yAxis = d3
+        .axisLeft(yScale)
+        .tickValues([0, 100, 1000, 10000, 100000, 500000]);
+
+      var y = svg
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + 10 + ")")
+        .call(yAxis);
+
+      var x = svg
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + 310 + ")")
+        .call(xAxis);
+
+      var g = svg
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + 10 + ")");
+
+      //Charts
+      g.append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", "rgb(70, 130, 180)")
+        .attr("stroke-width", 2)
+        .attr(
+          "d",
+          d3
+            .line()
+            .x(function (d) {
+              return xScale(d.DATE);
+            })
+            .y(function (d) {
+              return yScale(d.CASE_CNT);
+            })
+        );
+
+      g.append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", "rgba(198, 45, 205, 0.8)")
+        .attr("stroke-width", 2)
+        .attr(
+          "d",
+          d3
+            .line()
+            .x(function (d) {
+              return xScale(d.DATE);
+            })
+            .y(function (d) {
+              return yScale(d.DEATH_CNT);
+            })
+        );
+
+      g.append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", "rgb(105, 179, 162)")
+        .attr("stroke-width", 2)
+        .attr(
+          "d",
+          d3
+            .line()
+            .x(function (d) {
+              return xScale(d.DATE);
+            })
+            .y(function (d) {
+              return yScale(d.VAC_CNT);
+            })
+        );
+
+      svg
+        .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 15)
+        .attr("x", 0 - 260)
+        .attr("dy", "1em")
+        .style("text-anchor", "middle")
+        .text("Count");
+
+      // Mouseover
+      var focus = svg
+        .append("g")
+        .attr("class", "bs-light")
+        .style("display", "none");
+      //.attr("transform", "translate(" + margin.left + "," + 10 + ")");
+
+      focus
+        .append("rect")
+        .attr("x", 15)
+        .attr("y", 180)
+        .attr("width", 190)
+        .attr("height", 90)
+        .attr("stroke", "#606060")
+        .attr("fill", "white");
+
+      focus
+        .append("line")
+        .attr("x0", 0)
+        .attr("x1", 0)
+        .attr("y0", 0)
+        .attr("y1", 300)
+        .style("stroke-width", 2)
+        .style("stroke", "red")
+        .style("fill", "none");
+
+      focus
+        .append("text")
+        .attr("class", "tooltip-date")
+        .attr("x", 18)
+        .attr("y", 200)
+        .style("font-size", "12px");
+
+      focus
+        .append("text")
+        .attr("class", "tooltip-case")
+        .attr("x", 18)
+        .attr("y", 220)
+        .style("font-size", "12px");
+      focus
+        .append("text")
+        .attr("class", "tooltip-death")
+        .attr("x", 18)
+        .attr("y", 240)
+        .style("font-size", "12px");
+      focus
+        .append("text")
+        .attr("class", "tooltip-vac")
+        .attr("x", 18)
+        .attr("y", 260)
+        .style("font-size", "12px");
+
+      var bisectDate = d3.bisector(function (d) {
+        return d.DATE;
+      }).right;
+
+      g.append("rect")
+        .attr("class", "overlay")
+        .attr("width", 490)
+        .attr("height", 300)
+        .on("mouseover", function () {
+          focus.style("display", null);
+        })
+        .on("mouseout", function () {
+          focus.style("display", "none");
+        })
+        .on("mousemove", function (d, i) {
+          var coord = d3.mouse(this);
+          var i = 1;
+          x_val = xScale.invert(coord[0]);
+
+          var last_date = new Date(
+            x_val.getFullYear(),
+            x_val.getMonth() + 1,
+            0
+          );
+          //console.log( last_date);
+          i = bisectDate(data, x_val, 1);
+          //console.log(i);
+          (d10 = data[i < 0 ? 0 : i]),
+            (d11 = data[i + 1 > last_date.getDate() ? last_date.getDate() : i]),
+            (d = x_val - d10.DATE > d11.DATE - x_val ? d11 : d10);
+
+          //console.log(d0);
+          //console.log(d1);
+
+          focus.attr(
+            "transform",
+            "translate(" + (xScale(d.DATE) + 88) + "," + margin.top + ")"
+          );
+          focus
+            .select(".tooltip-date")
+            .text(
+              d.DATE.getFullYear() +
+                "/" +
+                (d.DATE.getMonth() + 1) +
+                "/" +
+                d.DATE.getDate()
+            );
+          focus.select(".tooltip-case").text("Cases: " + d.CASE_CNT);
+          focus.select(".tooltip-death").text("Deaths: " + d.DEATH_CNT);
+          focus.select(".tooltip-vac").text("Vaccinations: " + d.VAC_CNT);
+        });
+
+      // Legends
+      svg
+        .append("rect")
+        .attr("x", 200)
+        .attr("y", 350)
+        .attr("height", 12)
+        .attr("width", 12)
+        .style("fill", "rgb(70, 130, 180)");
+      svg
+        .append("rect")
+        .attr("x", 300)
+        .attr("y", 350)
+        .attr("height", 12)
+        .attr("width", 12)
+        .style("fill", "rgba(198, 45, 205, 0.8)");
+      svg
+        .append("rect")
+        .attr("x", 400)
+        .attr("y", 350)
+        .attr("height", 12)
+        .attr("width", 12)
+        .style("fill", "rgb(105, 179, 162)");
+      svg
+        .append("text")
+        .attr("x", 220)
+        .attr("y", 362)
+        .text("Cases")
+        .style("font-size", "15px")
+        .attr("alignment-baseline", "middle");
+      svg
+        .append("text")
+        .attr("x", 320)
+        .attr("y", 362)
+        .text("Deaths")
+        .style("font-size", "15px")
+        .attr("alignment-baseline", "middle");
+      svg
+        .append("text")
+        .attr("x", 420)
+        .attr("y", 362)
+        .text("Vaccinations (atleast 1 dose)")
+        .style("font-size", "15px")
+        .attr("alignment-baseline", "middle");
+    };
+  </script>
+  <script type="text/javascript">
+    var data = [];
+    async function init() {
+      data = await d3
+        .csv("../resources/data/details_data_by_month.csv", d3.autoType)
+        .then(function (data) {
+          data.forEach(function (d) {
+            d.DATE = d.DATE;
+            d.CASE_CNT = +d.CASE_CNT;
+            d.DEATH_CNT = +d.DEATH_CNT;
+            d.VAC_CNT = +d.VAC_CNT;
+            d.CASE_CNT_K = kFormatter(+d.CASE_CNT);
+            d.DEATH_CNT_K = kFormatter(+d.DEATH_CNT);
+            d.VAC_CNT_K = kFormatter(+d.VAC_CNT);
+            d.CASE_PCT_CHG = parseNumber(+d.CASE_PCT_CHG * 100);
+            d.DEATH_PCT_CHG = parseNumber(+d.DEATH_PCT_CHG * 100);
+            d.VAC_PCT_CHG = parseNumber(+d.VAC_PCT_CHG * 100);
+          });
+          return data;
+        });
+
+      data2 = await d3
+        .csv("../resources/data/details_data_by_date.csv", d3.autoType)
+        .then(function (data) {
+          data.forEach(function (d) {
+            d.DATE = d.DATE;
+            d.CASE_CNT = +d.CASE_CNT;
+            d.DEATH_CNT = +d.DEATH_CNT;
+            d.VAC_CNT = +d.VAC_CNT;
+          });
+          return data;
+        });
+      //console.log(data2);
+      //console.log(index);
+      chart(
+        data.filter((d) => d.AGE == index && d.DATE >= new Date("2020-11-01"))
+      );
+
+      chart2(
+        data2.filter(
+          (d) =>
+            d.AGE == index &&
+            d.DATE >= new Date(date_rng.start) &&
+            d.DATE <= new Date(date_rng.end)
+        ),
+        date_rng.start,
+        date_rng.end
+      );
+    }
+  </script>
+  <script type="text/javascript">
+    var path = window.location.pathname;
+    var page = path.split("/").pop();
+    var page_id = page.split(".")[0].split("_").pop();
+    param = setParameter(page_id);
+    setNav(page_id);
+    setButton(page_id);
+    index = loadAgeDDL(page_id);
+    chart_file = param.chart_file;
+    init();
+    setDetailsBtn();
+
+    date_rng = loadmodal();
+  </script>
+  <script type="text/javascript">
+    {
+      var ddl = d3.select("#ddlContainer").select("select", "svg");
+      ddl.on("change", function (d) {
+        index = ddl.node().value;
+        chart(
+          data.filter((d) => d.AGE == index && d.DATE >= new Date("2020-11-01"))
+        );
+        d3.select("#exampleModalLabel").text(function () {
+          return "Daily Details for Age Group: " + index;
+        });
+      });
+    }
+  </script>
+  <script type="text/javascript">
+    {
+      var ddl1 = d3.select("#detail_month").select("select", "svg");
+      ddl1.on("change", function (d) {
+        mnth = ddl1.node().value;
+        date_rng.end = mnth;
+
+        var tmp = new Date(mnth);
+        date_rng.start = mnth.substring(0, mnth.length - 2) + "01";
+        //console.log(date_rng);
+        //console.log(data2)
+        chart2(
+          data2.filter(
+            (d) =>
+              d.AGE == index &&
+              d.DATE >= new Date(date_rng.start) &&
+              d.DATE <= new Date(date_rng.end)
+          ),
+          date_rng.start,
+          date_rng.end
+        );
+      });
+    }
+  </script>
+</html>

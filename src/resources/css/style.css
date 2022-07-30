@@ -1,0 +1,44 @@
+body {
+  font-family: "Newsreader", serif !important;
+}
+
+#label {
+  position: absolute;
+  left: 10px;
+  font-weight: 100;
+  font-family: inherit;
+}
+
+.hover {
+  fill: yellow;
+}
+
+#sliderContainer {
+  text-align: center;
+  top: 600px;
+}
+
+.tooltip {
+  fill: white;
+  stroke: #000;
+}
+
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+
+
+.focus text {
+  font-size: 14px !important;
+}
+
+.tooltip-date{
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.tooltip-case, .tooltip-death, .tooltip-vac {
+  font-weight: inherit;
+  font-stretch: expanded;
+}
